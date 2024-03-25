@@ -474,9 +474,35 @@ void FxMainWindow::modelChanged(FxModel::Event model_event)
 	power_button_.setPowerState(FxModel::getModel().getPowerState());
 }
 
-void FxMainWindow::userTriedToCloseWindow()
+void FxMainWindow::userTriedToCloseWindow() override
 {
-	FxController::getInstance().exit();
+    this->setVisible(false); // Hide the main window instead of closing it
+}
+
+void FxSystemTrayView::createSystemTrayIcon()
+{
+    auto* trayIcon = new SystemTrayIconComponent();
+    trayIcon->setIconImage(SomeImage); // Set your icon image here
+    trayIcon->setOnClickCallback([this]() {
+        PopupMenu menu;
+        menu.addItem(1, "Show FxSound", true, false);
+        menu.addItem(2, "Quit FxSound", true, false);
+        
+        const int result = menu.show();
+        if (result == 1)
+        {
+            // Logic to show the main window
+            if (auto* mainWindow = dynamic_cast<FxMainWindow*>(JUCEApplication::getInstance()->getMainWindow()))
+            {
+                mainWindow->setVisible(true);
+                mainWindow->toFront(true);
+            }
+        }
+        else if (result == 2)
+        {
+            JUCEApplication::getInstance()->systemRequestedQuit();
+        }
+    });
 }
 
 void FxMainWindow::closeButtonPressed()
